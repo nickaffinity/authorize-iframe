@@ -1,16 +1,50 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script>
-      window.addEventListener("message", function(event) {
-        if (event.origin !== "https://accept.authorize.net") return;
-        var data = JSON.parse(event.data);
-        if (data.action === "successfulSave") {
-          window.location.href = "/thank-you-for-submitting-ed";
-        } else if (data.action === "cancel") {
-          window.location.href = "/cancel";
+    <title>Authorize.Net IFrame Communicator</title>
+    <script type="text/javascript">
+      function parseQueryString() {
+        var str = location.search;
+        var objURL = {};
+
+        str.replace(
+          new RegExp("([^?=&]+)(=([^&]*))?", "g"),
+          function ($0, $1, $2, $3) {
+            objURL[$1] = $3;
+          }
+        );
+        return objURL;
+      }
+
+      window.Communicator = {
+        postMessage: function (msg) {
+          if (parent.postMessage) {
+            parent.postMessage(msg, "*");
+          }
+        },
+      };
+
+      window.onload = function () {
+        var params = parseQueryString();
+        if (params["action"] === "resizeWindow") {
+          Communicator.postMessage(
+            {
+              action: "resizeWindow",
+              width: parseInt(params["width"]),
+              height: parseInt(params["height"]),
+            },
+            "*"
+          );
+        } else if (params["action"] === "transactResponse") {
+          Communicator.postMessage(
+            {
+              action: "transactResponse",
+              response: params["response"],
+            },
+            "*"
+          );
         }
-      });
+      };
     </script>
   </head>
   <body></body>
